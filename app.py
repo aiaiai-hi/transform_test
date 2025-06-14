@@ -171,9 +171,6 @@ class ExcelTransformer:
             # Определяем тип данных
             data_type = self.detect_data_type(column_data)
             
-            # Генерируем код атрибута (исправлено)
-            attribute_code = f"{self.report_number}_{idx}"
-            
             # Определяем значения по умолчанию в зависимости от типа отчета
             if report_type in ["Ручной", "Полуавтоматический"]:
                 tech_algorithm_to_be = "Ручной ввод"
@@ -186,7 +183,7 @@ class ExcelTransformer:
             system_connection = "ИЛА One" if report_type == "ИЛА" else ""
             
             metadata_record = {
-                'ReportCode_info': attribute_code,  # Исправлено: теперь используется код атрибута
+                'ReportCode_info': '',  # Будет заполнено позже
                 'Noreportfield_info': idx,
                 'name': column,
                 'description': '',
@@ -212,6 +209,12 @@ class ExcelTransformer:
             metadata_list.append(metadata_record)
         
         metadata_df = pd.DataFrame(metadata_list)
+        
+        # Заполняем код атрибута после создания DataFrame
+        metadata_df['ReportCode_info'] = metadata_df['Noreportfield_info'].apply(
+            lambda x: f"{self.report_number}_{x}"
+        )
+        
         return metadata_df
     
     def create_excel_download(self, metadata_df):
@@ -279,22 +282,33 @@ class ExcelTransformer:
             # Делаем заголовки полужирными
             cell.font = Font(bold=True)
         
+        # Закрепляем первые две строки
+        ws.freeze_panes = ws.cell(row=3, column=1)
+        
         # Записываем данные начиная с третьей строки
         for row_idx, (_, row) in enumerate(metadata_df.iterrows(), 3):
             for col_idx, value in enumerate(row, 1):
                 ws.cell(row=row_idx, column=col_idx, value=value)
         
-        # Автоподбор ширины столбцов
-        for column in ws.columns:
+        # Автоподбор ширины столбцов (учитываем все строки включая заголовки)
+        for col_idx, column_letter in enumerate([chr(65 + i) for i in range(len(technical_headers))], 0):
             max_length = 0
-            column_letter = column[0].column_letter
             
-            for cell in column:
-                try:
-                    if cell.value and len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
+            # Проверяем техническую строку
+            if len(technical_headers) > col_idx:
+                if len(str(technical_headers[col_idx])) > max_length:
+                    max_length = len(str(technical_headers[col_idx]))
+            
+            # Проверяем пользовательскую строку
+            if len(user_headers) > col_idx:
+                if len(str(user_headers[col_idx])) > max_length:
+                    max_length = len(str(user_headers[col_idx]))
+            
+            # Проверяем данные
+            for row_idx in range(3, len(metadata_df) + 3):
+                cell_value = ws.cell(row=row_idx, column=col_idx + 1).value
+                if cell_value and len(str(cell_value)) > max_length:
+                    max_length = len(str(cell_value))
             
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
