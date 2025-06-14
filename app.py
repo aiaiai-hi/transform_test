@@ -17,7 +17,7 @@ class ExcelTransformer:
         Args:
             report_number (str): Номер отчета для генерации кодов атрибутов
         """
-        self.report_number = report_number or "RPT001"
+        self.report_number = report_number or "R001"
         self.supported_extensions = ['.xlsx', '.xls', '.csv']
         self.report_types = ["Ручной", "Полуавтоматический", "Автоматический", "ИЛА"]
     
@@ -367,7 +367,7 @@ def main():
         st.header("⚙️ Параметры")
         report_number = st.text_input(
             "Номер отчета",
-            value="RPT_001",
+            value="R001",
             help="Этот номер будет использован для генерации кодов атрибутов и названия файла"
         )
         
