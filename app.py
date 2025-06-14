@@ -212,7 +212,7 @@ class ExcelTransformer:
         
         # Заполняем код атрибута после создания DataFrame
         metadata_df['ReportCode_info'] = metadata_df['Noreportfield_info'].apply(
-            lambda x: f"{self.report_number}_{x}"
+            lambda x: f"{self.report_number}_{x:03d}"
         )
         
         return metadata_df
