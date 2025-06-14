@@ -355,7 +355,7 @@ def main():
     # Основной интерфейс
     col1, col2 = st.columns([2, 1])
     
-    with col1:
+    with col2:
         st.header("📁 Загрузка файла")
         uploaded_file = st.file_uploader(
             "Выберите Excel или CSV файл",
@@ -363,7 +363,7 @@ def main():
             help="Поддерживаются форматы: Excel (.xlsx, .xls) и CSV (.csv)"
         )
     
-    with col2:
+    with col1:
         st.header("⚙️ Параметры")
         report_number = st.text_input(
             "Номер отчета",
